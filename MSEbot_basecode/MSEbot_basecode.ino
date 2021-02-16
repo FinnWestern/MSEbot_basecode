@@ -332,7 +332,7 @@ void loop()
           }
            case 11:
           {
-             ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
+            ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
             CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
             CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
             ucMotorStateIndex = 0;
