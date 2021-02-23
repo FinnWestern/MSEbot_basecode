@@ -78,6 +78,7 @@ void loopWEBServerButtonresponce(void);
 const int CR1_ciMainTimer =  1000;
 const int CR1_ciHeartbeatInterval = 500;
 const int CR1_ciMotorRunTime = 1000;
+const int CR1_ciMotorPauseTime = 500;
 const long CR1_clDebounceDelay = 50;
 const long CR1_clReadTimeout = 220;
 
@@ -91,6 +92,7 @@ uint8_t CR1_ui8IRDatum;
 uint8_t CR1_ui8WheelSpeed;
 uint8_t CR1_ui8LeftWheelSpeed;
 uint8_t CR1_ui8RightWheelSpeed;
+float bias;
 
 uint32_t CR1_u32Now;
 uint32_t CR1_u32Last;
@@ -113,6 +115,7 @@ unsigned long CR1_ulHeartbeatTimerNow;
 boolean btHeartbeat = true;
 boolean btRun = false;
 boolean btToggle = true;
+boolean adjustSpeed = true;    //key to if statement which averages speed to kep robot straight
 int iButtonState;
 int iLastButtonState = HIGH;
 
@@ -231,8 +234,9 @@ void loop()
       
       if(btRun)
       {
+       if(!ENC_ISMotorRunning()){
        CR1_ulMotorTimerNow = millis();
-       if(CR1_ulMotorTimerNow - CR1_ulMotorTimerPrevious >= CR1_ciMotorRunTime)   
+       if(CR1_ulMotorTimerNow - CR1_ulMotorTimerPrevious >= CR1_ciMotorPauseTime)   
        {   
          CR1_ulMotorTimerPrevious = CR1_ulMotorTimerNow;
          switch(ucMotorStateIndex)
@@ -246,11 +250,9 @@ void loop()
           }
            case 1:
           {
-            
-            ENC_SetDistance(200, 200);
+            adjustSpeed = true;
+            ENC_SetDistance(800, 800);
             ucMotorState = 1;   //forward
-            CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
-            CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
             ucMotorStateIndex = 2;
                      
             break;
@@ -264,9 +266,8 @@ void loop()
           }
           case 3:
           {
+            adjustSpeed = false;
             ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
-            CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
-            CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
             ucMotorStateIndex = 4;
             ucMotorState = 2;  //left
            
@@ -282,8 +283,6 @@ void loop()
          case 5:
           {
             ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
-            CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
-            CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
             ucMotorStateIndex =  6;
             ucMotorState = 3;  //right
             
@@ -298,11 +297,10 @@ void loop()
           }
            case 7:
           {
+            adjustSpeed = true;
             ucMotorStateIndex = 8;
             ucMotorState = 4;  //reverse
             ENC_SetDistance(-200, -200);
-            CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
-            CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
             
             break;
           }
@@ -315,9 +313,8 @@ void loop()
           }
           case 9:
           {
+            adjustSpeed = false;
             ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
-            CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
-            CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
             ucMotorStateIndex = 10;
             ucMotorState = 3;  //right
             
@@ -333,8 +330,6 @@ void loop()
            case 11:
           {
             ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
-            CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
-            CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
             ucMotorStateIndex = 0;
             ucMotorState = 2;  //left
             
@@ -342,7 +337,28 @@ void loop()
           }
          }
         }
+       }
+       
+      //adjust speed to remain straight
+      if(adjustSpeed){
+        bias = ENC_SpeedBias();
+        CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;   //average speeds
+        CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed*bias;
+        if(CR1_ui8RightWheelSpeed > 255){
+          CR1_ui8RightWheelSpeed = 255;
+        }else if(CR1_ui8RightWheelSpeed < 130){
+          CR1_ui8RightWheelSpeed = 130;
+        }
+      }else{
+        CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
+        CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
       }
+      }
+      Serial.print(bias);
+      Serial.print(" Left: ");
+      Serial.print(CR1_ui8LeftWheelSpeed);
+      Serial.print(" Right: ");
+      Serial.println(CR1_ui8RightWheelSpeed);
       CR1_ucMainTimerCaseCore1 = 1;
       
       break;
@@ -372,7 +388,7 @@ void loop()
       //move bot X number of odometer ticks
       if(ENC_ISMotorRunning())
       {
-        MoveTo(ucMotorState, CR1_ui8LeftWheelSpeed,CR1_ui8LeftWheelSpeed);
+        MoveTo(ucMotorState, CR1_ui8LeftWheelSpeed, CR1_ui8RightWheelSpeed);
       }
    
       CR1_ucMainTimerCaseCore1 = 4;
