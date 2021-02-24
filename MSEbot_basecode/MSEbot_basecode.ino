@@ -340,25 +340,39 @@ void loop()
        }
        
       //adjust speed to remain straight
+      Serial.print(bias);
+      Serial.print(" Speed: ");
+      Serial.print(CR1_ui8WheelSpeed);
       if(adjustSpeed){
         bias = ENC_SpeedBias();
-        CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;   //average speeds
+        CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed/bias;   //average speeds
         CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed*bias;
+        Serial.print(" Right before: ");
+        Serial.print(CR1_ui8RightWheelSpeed);
+        Serial.print(" Left before: ");
+        Serial.print(CR1_ui8LeftWheelSpeed);
+        
         if(CR1_ui8RightWheelSpeed > 255){
           CR1_ui8RightWheelSpeed = 255;
         }else if(CR1_ui8RightWheelSpeed < 130){
           CR1_ui8RightWheelSpeed = 130;
         }
+
+        if(CR1_ui8LeftWheelSpeed > 255){
+          CR1_ui8LeftWheelSpeed = 255;
+        }else if(CR1_ui8LeftWheelSpeed < 130){
+          CR1_ui8LeftWheelSpeed = 130;
+        }
       }else{
         CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
         CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
       }
-      }
-      Serial.print(bias);
       Serial.print(" Left: ");
       Serial.print(CR1_ui8LeftWheelSpeed);
       Serial.print(" Right: ");
       Serial.println(CR1_ui8RightWheelSpeed);
+      }
+      
       CR1_ucMainTimerCaseCore1 = 1;
       
       break;
