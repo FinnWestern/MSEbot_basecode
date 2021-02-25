@@ -83,7 +83,7 @@ const long CR1_clDebounceDelay = 50;
 const long CR1_clReadTimeout = 220;
 
 const uint8_t ci8RightTurn = 18;
-const uint8_t ci8LeftTurn = 17;
+const uint8_t ci8LeftTurn = 18;
 
 unsigned char CR1_ucMainTimerCaseCore1;
 uint8_t CR1_ui8LimitSwitch;
@@ -245,6 +245,7 @@ void loop()
          {
           case 0:
           {
+            adjustSpeed = false;
             ucMotorStateIndex = 1;
             ucMotorState = 1;
             break;
@@ -252,8 +253,8 @@ void loop()
            case 1:
           {
             adjustSpeed = true;
-            ENC_SetDistance(-800, 800);
-            ucMotorState = 2;   //forward
+            ENC_SetDistance(800, 800);
+            ucMotorState = 1;   //forward
             ucMotorStateIndex = 2;
                      
             break;
@@ -267,7 +268,6 @@ void loop()
           }
           case 3:
           {
-            adjustSpeed = false;
             ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
             ucMotorStateIndex = 4;
             ucMotorState = 2;  //left
@@ -298,7 +298,6 @@ void loop()
           }
            case 7:
           {
-            adjustSpeed = true;
             ucMotorStateIndex = 8;
             ucMotorState = 4;  //reverse
             ENC_SetDistance(-200, -200);
@@ -314,7 +313,6 @@ void loop()
           }
           case 9:
           {
-            adjustSpeed = false;
             ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
             ucMotorStateIndex = 10;
             ucMotorState = 3;  //right
