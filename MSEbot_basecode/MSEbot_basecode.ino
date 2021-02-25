@@ -93,6 +93,8 @@ uint8_t CR1_ui8WheelSpeed;
 uint8_t CR1_ui8LeftWheelSpeed;
 uint8_t CR1_ui8RightWheelSpeed;
 float bias;
+int int_rightWheelSpeed;
+int int_leftWheelSpeed;
 
 uint32_t CR1_u32Now;
 uint32_t CR1_u32Last;
@@ -244,8 +246,7 @@ void loop()
           case 0:
           {
             ucMotorStateIndex = 1;
-            ucMotorState = 0;
-            move(0);
+            ucMotorState = 1;
             break;
           }
            case 1:
@@ -340,29 +341,32 @@ void loop()
        }
        
       //adjust speed to remain straight
-      Serial.print(bias);
-      Serial.print(" Speed: ");
-      Serial.print(CR1_ui8WheelSpeed);
+      
       if(adjustSpeed){
         bias = ENC_SpeedBias();
-        CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed/bias;   //average speeds
-        CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed*bias;
+        Serial.print(bias);
+        Serial.print(" Speed: ");
+        Serial.print(CR1_ui8WheelSpeed);
+        int_leftWheelSpeed = CR1_ui8WheelSpeed*bias;   //average speeds
+        int_rightWheelSpeed = CR1_ui8WheelSpeed/bias;
         Serial.print(" Right before: ");
         Serial.print(CR1_ui8RightWheelSpeed);
         Serial.print(" Left before: ");
         Serial.print(CR1_ui8LeftWheelSpeed);
         
-        if(CR1_ui8RightWheelSpeed > 255){
-          CR1_ui8RightWheelSpeed = 255;
-        }else if(CR1_ui8RightWheelSpeed < 130){
-          CR1_ui8RightWheelSpeed = 130;
+        if(int_rightWheelSpeed > 255){
+          int_rightWheelSpeed = 255;
+        }else if(int_rightWheelSpeed < 130){
+          int_rightWheelSpeed = 130;
         }
-
-        if(CR1_ui8LeftWheelSpeed > 255){
-          CR1_ui8LeftWheelSpeed = 255;
-        }else if(CR1_ui8LeftWheelSpeed < 130){
-          CR1_ui8LeftWheelSpeed = 130;
+        if(int_leftWheelSpeed > 255){
+          int_leftWheelSpeed = 255;
+        }else if(int_leftWheelSpeed < 130){
+          int_leftWheelSpeed = 130;
         }
+        CR1_ui8RightWheelSpeed = int_rightWheelSpeed;
+        CR1_ui8LeftWheelSpeed = int_leftWheelSpeed;
+        
       }else{
         CR1_ui8LeftWheelSpeed = CR1_ui8WheelSpeed;
         CR1_ui8RightWheelSpeed = CR1_ui8WheelSpeed;
