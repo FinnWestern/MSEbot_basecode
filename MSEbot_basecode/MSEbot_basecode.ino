@@ -252,8 +252,8 @@ void loop()
            case 1:
           {
             adjustSpeed = true;
-            ENC_SetDistance(800, 800);
-            ucMotorState = 1;   //forward
+            ENC_SetDistance(-800, 800);
+            ucMotorState = 2;   //forward
             ucMotorStateIndex = 2;
                      
             break;
