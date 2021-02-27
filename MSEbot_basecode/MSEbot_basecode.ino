@@ -82,8 +82,8 @@ const int CR1_ciMotorPauseTime = 1000;
 const long CR1_clDebounceDelay = 50;
 const long CR1_clReadTimeout = 220;
 
-const uint8_t ci8RightTurn = 70;
-const uint8_t ci8LeftTurn = 80;
+const uint8_t ci8RightTurn = 25;
+const uint8_t ci8LeftTurn = 27;
 
 unsigned char CR1_ucMainTimerCaseCore1;
 uint8_t CR1_ui8LimitSwitch;
@@ -240,76 +240,82 @@ void loop()
        CR1_ulMotorTimerNow = millis();
        if(CR1_ulMotorTimerNow - CR1_ulMotorTimerPrevious >= CR1_ciMotorPauseTime)   
        {   
-         CR1_ulMotorTimerPrevious = CR1_ulMotorTimerNow;
          switch(ucMotorStateIndex)
          {
-          case 0:
+           case 0:
           {
-            adjustSpeed = false;
+            move(0);
+            adjustSpeed = true;
+            ENC_SetDistance(290, 290);
+            ucMotorState = 1;   //forward
             ucMotorStateIndex = 1;
-            ucMotorState = 1;
+                     
             break;
           }
            case 1:
           {
-            adjustSpeed = true;
-            ENC_SetDistance(300, 300);
-            ucMotorState = 1;   //forward
-            ucMotorStateIndex = 2;
-                     
-            break;
-          }
-           case 2:
-          {
+            move(0);
             ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
-            ucMotorState = 5;  //left pivot
-            ucMotorStateIndex = 3;
+            ucMotorState = 2;  //left pivot
+            ucMotorStateIndex = 2;
             break;
           }
-          case 3:
+          case 2:
           {
-            ENC_SetDistance(225, 225);
+            move(0);
+            ENC_SetDistance(240, 240);
             ucMotorState = 1;   //forward
-            ucMotorStateIndex = 4;
+            ucMotorStateIndex = 3;
            
             break;
           }
-           case 4:
+           case 3:
           {
+            move(0);
             ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
-            ucMotorState = 6;  //right pivot
+            ucMotorState = 3;  //right pivot
+            ucMotorStateIndex = 4;
+            
+            break;
+          }
+         case 4:
+          {
+            move(0);
+            ENC_SetDistance(290, 290);
+            ucMotorState = 1;   //forward
             ucMotorStateIndex = 5;
-            
             break;
           }
-         case 5:
+          case 5:
           {
-            ENC_SetDistance(285, 285);
-            ucMotorState = 1;   //forward
-            ucMotorStateIndex =  6;
-            break;
-          }
-          case 6:
-          {
+            move(0);
             ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
-            ucMotorState = 6;  //right pivot
-            ucMotorStateIndex = 7;
+            ucMotorState = 3;  //right pivot
+            ucMotorStateIndex = 6;
             
             break;
           }
-           case 7:
+           case 6:
           {
-            ENC_SetDistance(340, 340);
+            move(0);
+            ENC_SetDistance(320, 320);
             ucMotorState = 1;   //forward
-            ucMotorStateIndex = 8;
+            ucMotorStateIndex = 7;
                        
+            break;
+          }
+          case 7:
+          {
+            move(0);
+            ucMotorStateIndex = 8;
+            ucMotorState = 0;
+            
             break;
           }
           case 8:
           {
             ucMotorStateIndex = 9;
-            ucMotorState = 0;
-            move(0);
+            
             break;
           }
           case 9:
@@ -318,16 +324,10 @@ void loop()
             
             break;
           }
-          case 10:
-          {
-            ucMotorStateIndex = 11;
-            
-            break;
-          }
-           case 11:
+           case 10:
           {
             
-            ucMotorStateIndex = 0;
+            //ucMotorStateIndex = 0;
             
             break;
           }
@@ -336,6 +336,8 @@ void loop()
           ucMotorState = 0;
           move(0);
         }
+       }else{
+          CR1_ulMotorTimerPrevious = millis();
        }
        
       //adjust speed to remain straight

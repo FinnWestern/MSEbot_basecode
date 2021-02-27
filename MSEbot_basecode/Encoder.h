@@ -415,7 +415,9 @@ int32_t ENC_Averaging()
 
 float ENC_SpeedBias()
 {
-  return (float)(ENC_ui32RightEncoderAveTime+ENC_ui32LeftEncoderAveTime)/(2*ENC_ui32RightEncoderAveTime);
+  float ENC_LeftEncoderAveTime = ENC_ui32LeftEncoderAveTime;
+  float ENC_RightEncoderAveTime = ENC_ui32RightEncoderAveTime;
+  return (float)(ENC_LeftEncoderAveTime/ENC_RightEncoderAveTime);///(2*ENC_ui32RightEncoderAveTime);
 }
 
 void ENC_ClearLeftOdometer()

@@ -11,8 +11,8 @@
 
 //---------------------------------------------------------------------------
 
-#define DEBUGPRINT 1
-#define ACCELERATIONRATE 1;
+#define DEBUGPRINT
+#define ACCELERATIONRATE 2;
 
 
 
@@ -24,7 +24,7 @@ const uint8_t cui8StartingSpeed = 140;
 uint8_t ui8LeftWorkingSpeed = cui8StartingSpeed;
 uint8_t ui8RightWorkingSpeed = cui8StartingSpeed;
 
-unsigned char ucMotorState = 0;
+unsigned char ucMotorState = 5;
 
 double dManualSpeed;
 double dForwardSpeed;
@@ -228,9 +228,100 @@ void MoveTo(uint8_t ui8Direction, uint8_t ui8LeftSpeed, uint8_t ui8RightSpeed)
       }
  }
 
+void MoveToNoAcceleration(uint8_t ui8Direction, uint8_t ui8LeftSpeed, uint8_t ui8RightSpeed)
+{
+    int  iPrintOnce;
+      
+   
+     switch(ui8Direction)
+      {
+      
+      
+        //forward
+        case 1:
+        {  
+          ledcWrite(2,0);
+          ledcWrite(1,ui8LeftSpeed);
+          ledcWrite(4,0);
+          ledcWrite(3,ui8RightSpeed);
+          
+          break;
+        }
+        //Left
+        case 2:
+        {
+          ledcWrite(1,0);
+          ledcWrite(2,ui8LeftSpeed);
+          ledcWrite(4,0);
+          ledcWrite(3,ui8RightSpeed);
+        
+          break;
+        }
+        //Right
+        case 3:
+        {
+          ledcWrite(2,0);
+          ledcWrite(1,ui8LeftSpeed);
+          ledcWrite(3,0);
+          ledcWrite(4,ui8RightSpeed);
+       
+          break;
+        }
+        //Reverse
+        case 4:
+        {
+          ledcWrite(1,0);
+          ledcWrite(2,ui8LeftSpeed);
+          ledcWrite(3,0);
+          ledcWrite(4,ui8RightSpeed);
+       
+          break;
+        }
+        case 5:   //left pivot
+        {
+          if(ui8RightWorkingSpeed >= ui8RightSpeed)
+          {
+            ui8RightWorkingSpeed = ui8RightSpeed;
+          }
+          else
+          {
+            ui8RightWorkingSpeed = ui8RightWorkingSpeed + ACCELERATIONRATE;
+          }
+         
+          ledcWrite(1,255);
+          ledcWrite(2,255);
+          ledcWrite(4,0);
+          ledcWrite(3,ui8RightWorkingSpeed);
+        
+          break;
+        }
+        case 6:     //right pivot
+        {
+          if(ui8LeftWorkingSpeed >= ui8LeftSpeed)
+          {
+            ui8LeftWorkingSpeed = ui8LeftSpeed;
+          }
+          else
+          {
+          ui8LeftWorkingSpeed = ui8LeftWorkingSpeed + ACCELERATIONRATE;
+          }
+         
+          ledcWrite(2,0);
+          ledcWrite(1,ui8LeftWorkingSpeed);
+          ledcWrite(3,255);
+          ledcWrite(4,255);
+       
+          break;
+        }
+     
+        
+      }
+ }
+
 void move(uint8_t ui8Speed)
 {
     int  iPrintOnce;
+    ucMotorState = 5;
 
      switch(ucMotorState)
       {
