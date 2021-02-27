@@ -78,12 +78,12 @@ void loopWEBServerButtonresponce(void);
 const int CR1_ciMainTimer =  1000;
 const int CR1_ciHeartbeatInterval = 500;
 const int CR1_ciMotorRunTime = 1000;
-const int CR1_ciMotorPauseTime = 500;
+const int CR1_ciMotorPauseTime = 1000;
 const long CR1_clDebounceDelay = 50;
 const long CR1_clReadTimeout = 220;
 
-const uint8_t ci8RightTurn = 18;
-const uint8_t ci8LeftTurn = 18;
+const uint8_t ci8RightTurn = 70;
+const uint8_t ci8LeftTurn = 80;
 
 unsigned char CR1_ucMainTimerCaseCore1;
 uint8_t CR1_ui8LimitSwitch;
@@ -253,7 +253,7 @@ void loop()
            case 1:
           {
             adjustSpeed = true;
-            ENC_SetDistance(800, 800);
+            ENC_SetDistance(300, 300);
             ucMotorState = 1;   //forward
             ucMotorStateIndex = 2;
                      
@@ -261,47 +261,48 @@ void loop()
           }
            case 2:
           {
+            ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
+            ucMotorState = 5;  //left pivot
             ucMotorStateIndex = 3;
-            ucMotorState = 0;
-            move(0);
             break;
           }
           case 3:
           {
-            ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
+            ENC_SetDistance(225, 225);
+            ucMotorState = 1;   //forward
             ucMotorStateIndex = 4;
-            ucMotorState = 2;  //left
            
             break;
           }
            case 4:
           {
+            ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
+            ucMotorState = 6;  //right pivot
             ucMotorStateIndex = 5;
-            ucMotorState = 0;
-            move(0);
+            
             break;
           }
          case 5:
           {
-            ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
+            ENC_SetDistance(285, 285);
+            ucMotorState = 1;   //forward
             ucMotorStateIndex =  6;
-            ucMotorState = 3;  //right
-            
             break;
           }
           case 6:
           {
+            ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
+            ucMotorState = 6;  //right pivot
             ucMotorStateIndex = 7;
-            ucMotorState = 0;
-            move(0);
+            
             break;
           }
            case 7:
           {
+            ENC_SetDistance(340, 340);
+            ucMotorState = 1;   //forward
             ucMotorStateIndex = 8;
-            ucMotorState = 4;  //reverse
-            ENC_SetDistance(-200, -200);
-            
+                       
             break;
           }
           case 8:
@@ -313,28 +314,27 @@ void loop()
           }
           case 9:
           {
-            ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
             ucMotorStateIndex = 10;
-            ucMotorState = 3;  //right
             
             break;
           }
           case 10:
           {
             ucMotorStateIndex = 11;
-            ucMotorState = 0;
-            move(0);
+            
             break;
           }
            case 11:
           {
-            ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
+            
             ucMotorStateIndex = 0;
-            ucMotorState = 2;  //left
             
             break;
           }
          }
+        }else{
+          ucMotorState = 0;
+          move(0);
         }
        }
        

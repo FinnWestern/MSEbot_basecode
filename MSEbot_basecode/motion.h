@@ -187,6 +187,42 @@ void MoveTo(uint8_t ui8Direction, uint8_t ui8LeftSpeed, uint8_t ui8RightSpeed)
        
           break;
         }
+        case 5:   //left pivot
+        {
+          if(ui8RightWorkingSpeed >= ui8RightSpeed)
+          {
+            ui8RightWorkingSpeed = ui8RightSpeed;
+          }
+          else
+          {
+            ui8RightWorkingSpeed = ui8RightWorkingSpeed + ACCELERATIONRATE;
+          }
+         
+          ledcWrite(1,255);
+          ledcWrite(2,255);
+          ledcWrite(4,0);
+          ledcWrite(3,ui8RightWorkingSpeed);
+        
+          break;
+        }
+        case 6:     //right pivot
+        {
+          if(ui8LeftWorkingSpeed >= ui8LeftSpeed)
+          {
+            ui8LeftWorkingSpeed = ui8LeftSpeed;
+          }
+          else
+          {
+          ui8LeftWorkingSpeed = ui8LeftWorkingSpeed + ACCELERATIONRATE;
+          }
+         
+          ledcWrite(2,0);
+          ledcWrite(1,ui8LeftWorkingSpeed);
+          ledcWrite(3,255);
+          ledcWrite(4,255);
+       
+          break;
+        }
      
         
       }
