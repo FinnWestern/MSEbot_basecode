@@ -73,6 +73,8 @@ volatile uint32_t vui32test2;
 #include "BreakPoint.h"
 #include "WDT.h";
 
+#define motorStartIndex 0      //choose which step to start on
+
 void loopWEBServerButtonresponce(void);
 
 const int CR1_ciMainTimer =  1000;
@@ -82,8 +84,8 @@ const int CR1_ciMotorPauseTime = 1000;
 const long CR1_clDebounceDelay = 50;
 const long CR1_clReadTimeout = 220;
 
-const uint8_t ci8RightTurn = 25;
-const uint8_t ci8LeftTurn = 27;
+const uint8_t ci8RightTurn = 23;
+const uint8_t ci8LeftTurn = 24;
 
 unsigned char CR1_ucMainTimerCaseCore1;
 uint8_t CR1_ui8LimitSwitch;
@@ -109,7 +111,7 @@ unsigned long CR1_ulMainTimerNow;
 
 unsigned long CR1_ulMotorTimerPrevious;
 unsigned long CR1_ulMotorTimerNow;
-unsigned char ucMotorStateIndex = 0;
+unsigned char ucMotorStateIndex = motorStartIndex;
 
 unsigned long CR1_ulHeartbeatTimerPrevious;
 unsigned long CR1_ulHeartbeatTimerNow;
@@ -117,7 +119,11 @@ unsigned long CR1_ulHeartbeatTimerNow;
 boolean btHeartbeat = true;
 boolean btRun = false;
 boolean btToggle = true;
-boolean adjustSpeed = true;    //key to if statement which averages speed to kep robot straight
+boolean adjustSpeed = false;    //key to if statement which averages speed to kep robot straight
+boolean seekBeacon = false;
+boolean homeBeacon = false;
+boolean avoidBeacon = false;
+boolean firstPass = false;
 int iButtonState;
 int iLastButtonState = HIGH;
 
@@ -190,7 +196,7 @@ void loop()
        // if stopping, reset motor states and stop motors
        if(!btRun)
        {
-          ucMotorStateIndex = 0; 
+          ucMotorStateIndex = motorStartIndex; 
           ucMotorState = 0;
           move(0);
        }
@@ -203,7 +209,7 @@ void loop()
  if(!digitalRead(ciLimitSwitch))
  {
   btRun = 0; //if limit switch is pressed stop bot
-  ucMotorStateIndex = 0;
+  ucMotorStateIndex = motorStartIndex;
   ucMotorState = 0;
   move(0);
  }
@@ -239,7 +245,7 @@ void loop()
        if(!ENC_ISMotorRunning()){
        CR1_ulMotorTimerNow = millis();
        if(CR1_ulMotorTimerNow - CR1_ulMotorTimerPrevious >= CR1_ciMotorPauseTime)   
-       {   
+       {
          switch(ucMotorStateIndex)
          {
            case 0:
@@ -248,7 +254,7 @@ void loop()
             adjustSpeed = true;
             ENC_SetDistance(290, 290);
             ucMotorState = 1;   //forward
-            ucMotorStateIndex = 1;
+            ucMotorStateIndex++;
                      
             break;
           }
@@ -256,16 +262,16 @@ void loop()
           {
             move(0);
             ENC_SetDistance(-(ci8LeftTurn), ci8LeftTurn);
-            ucMotorState = 2;  //left pivot
-            ucMotorStateIndex = 2;
+            ucMotorState = 2;  //left 
+            ucMotorStateIndex++;
             break;
           }
           case 2:
           {
             move(0);
-            ENC_SetDistance(240, 240);
+            ENC_SetDistance(245, 245);
             ucMotorState = 1;   //forward
-            ucMotorStateIndex = 3;
+            ucMotorStateIndex++;
            
             break;
           }
@@ -273,25 +279,25 @@ void loop()
           {
             move(0);
             ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
-            ucMotorState = 3;  //right pivot
-            ucMotorStateIndex = 4;
+            ucMotorState = 3;  //right
+            ucMotorStateIndex++;
             
             break;
           }
          case 4:
           {
             move(0);
-            ENC_SetDistance(290, 290);
+            ENC_SetDistance(310, 310);
             ucMotorState = 1;   //forward
-            ucMotorStateIndex = 5;
+            ucMotorStateIndex++;
             break;
           }
           case 5:
           {
             move(0);
             ENC_SetDistance(ci8RightTurn,-(ci8RightTurn));
-            ucMotorState = 3;  //right pivot
-            ucMotorStateIndex = 6;
+            ucMotorState = 3;  //right
+            ucMotorStateIndex++;
             
             break;
           }
@@ -300,36 +306,61 @@ void loop()
             move(0);
             ENC_SetDistance(320, 320);
             ucMotorState = 1;   //forward
-            ucMotorStateIndex = 7;
+            ucMotorStateIndex++;
                        
             break;
           }
           case 7:
           {
             move(0);
-            ucMotorStateIndex = 8;
-            ucMotorState = 0;
+            ENC_runMotors();
+            seekBeacon = true;
+            firstPass = true;
+            ucMotorState = 3;   //right until sees beacon
             
             break;
           }
           case 8:
           {
-            ucMotorStateIndex = 9;
-            
+            move(0);
+            ENC_runMotors();
+            seekBeacon = true;
+            firstPass = false;
+            ucMotorState = 2;   //left to seek beacon again
+
             break;
           }
           case 9:
           {
-            ucMotorStateIndex = 10;
+            move(0);
+            ENC_SetDistance(-5, 5);
+            ucMotorState = 2;   //left
+            ucMotorStateIndex++;
             
             break;
           }
-           case 10:
+          case 10:
           {
-            
-            //ucMotorStateIndex = 0;
+            move(0);
+            ENC_runMotors();
+            homeBeacon = true;
+            ucMotorState = 1;     //forward
             
             break;
+          }
+           case 11:
+          {
+            move(0);
+            ENC_SetDistance(-150, -150);
+            ucMotorState = 4;   //reverse
+            ucMotorStateIndex++;
+            
+            break;
+          }
+          case 12:
+          {
+            move(0);
+            ucMotorState = 0;
           }
          }
         }else{
@@ -339,9 +370,35 @@ void loop()
        }else{
           CR1_ulMotorTimerPrevious = millis();
        }
+
+      if(seekBeacon){
+        if(CR1_ui8IRDatum == 0x55){ 
+          ENC_stopMotors();     
+          seekBeacon = false;
+          move(0);
+          ucMotorState = 0;
+          ucMotorStateIndex++;
+        }else if(firstPass){
+          CR1_ui8WheelSpeed = 170;
+        }else{
+          CR1_ui8WheelSpeed = 130;
+        }
+      }
+
+      if(homeBeacon){
+        if(CR1_ui8IRDatum == 0x41){
+          ENC_stopMotors();
+          homeBeacon = false;
+          move(0);
+          ucMotorState = 0;
+          ucMotorStateIndex++;
+        }else{
+          adjustSpeed = true;
+          CR1_ui8WheelSpeed = 180;
+        }
+      }
        
       //adjust speed to remain straight
-      
       if(adjustSpeed){
         bias = ENC_SpeedBias();
         Serial.print(bias);

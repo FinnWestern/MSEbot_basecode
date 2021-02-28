@@ -12,7 +12,7 @@
 //---------------------------------------------------------------------------
 
 #define DEBUGPRINT
-#define ACCELERATIONRATE 2;
+#define ACCELERATIONRATE 5;
 
 
 

@@ -67,6 +67,16 @@ void ENC_Calibrate()
   
 }
 
+void ENC_runMotors(){
+  ENC_btLeftMotorRunningFlag = true;
+  ENC_btRightMotorRunningFlag = true;
+}
+
+void ENC_stopMotors(){
+  ENC_btLeftMotorRunningFlag = false;
+  ENC_btRightMotorRunningFlag = false;
+}
+
 boolean ENC_ISMotorRunning()
 {
   if((ENC_btLeftMotorRunningFlag) && (ENC_btRightMotorRunningFlag))
@@ -220,7 +230,7 @@ void IRAM_ATTR ENC_isrRightA()
   {
     if(ENC_vi32RightOdometer == ENC_vi32RightOdometerCompare)
     {
-        ENC_btLeftMotorRunningFlag = false;
+      ENC_btLeftMotorRunningFlag = false;
       ENC_btRightMotorRunningFlag = false;
       digitalWrite(ciMotorLeftA,HIGH);
       digitalWrite(ciMotorLeftB,HIGH);
@@ -417,7 +427,7 @@ float ENC_SpeedBias()
 {
   float ENC_LeftEncoderAveTime = ENC_ui32LeftEncoderAveTime;
   float ENC_RightEncoderAveTime = ENC_ui32RightEncoderAveTime;
-  return (float)(ENC_LeftEncoderAveTime/ENC_RightEncoderAveTime);///(2*ENC_ui32RightEncoderAveTime);
+  return (float)(ENC_LeftEncoderAveTime+ENC_RightEncoderAveTime)/(2*ENC_ui32RightEncoderAveTime);
 }
 
 void ENC_ClearLeftOdometer()
