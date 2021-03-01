@@ -390,13 +390,21 @@ void loop()
           case 12:
           {
             move(0);
+            ENC_SetDistance(-(ci8LeftTurn*2), ci8LeftTurn);
+            ucMotorState = 2;   //left
+            ucMotorStateIndex++;
+            
+            break;
+          }
+          case 13:
+          {
             ucMotorState = 0;
             runStepper = true;
             ucMotorStateIndex++;
 
             break;
           }
-          case 13:
+          case 14:
           {
             move(0);
             ucMotorState = 0;
