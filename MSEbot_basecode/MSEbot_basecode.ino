@@ -56,8 +56,8 @@ const int ciEncoderLeftB = 5;
 const int ciEncoderRightA = 14;
 const int ciEncoderRightB = 13;
 const int ciSmartLED = 25;
-const int ciStepperMotorDir = 22;
-const int ciStepperMotorStep = 21;
+const int ciStepperMotorDir = 21;
+const int ciStepperMotorStep = 22;
 
 volatile uint32_t vui32test1;
 volatile uint32_t vui32test2;
@@ -116,6 +116,13 @@ unsigned char ucMotorStateIndex = motorStartIndex;
 unsigned long CR1_ulHeartbeatTimerPrevious;
 unsigned long CR1_ulHeartbeatTimerNow;
 
+unsigned long stepCount = 0;                  // number of steps
+unsigned long stepRate = 2000;                       // step rate in microseconds
+unsigned long prevStepperMicrosec = 0;               // start time for delay cycle, in milliseconds
+unsigned long curStepperMicrosec = 0;                // current time, in milliseconds
+boolean btDir = true;                         // step direction
+boolean runStepper = false;
+
 boolean btHeartbeat = true;
 boolean btRun = false;
 boolean btToggle = true;
@@ -164,6 +171,8 @@ void setup() {
    pinMode(ciHeartbeatLED, OUTPUT);
    pinMode(ciPB1, INPUT_PULLUP);
    pinMode(ciLimitSwitch, INPUT_PULLUP);
+   pinMode(ciStepperMotorDir, OUTPUT);                     // Assign output for direction
+   pinMode(ciStepperMotorStep, OUTPUT);                    // Assign output for step
 
    SmartLEDs.begin();                          // Initialize Smart LEDs object (required)
    SmartLEDs.clear();                          // Set all pixel colours to off
@@ -198,6 +207,7 @@ void loop()
        {
           ucMotorStateIndex = motorStartIndex; 
           ucMotorState = 0;
+          stepCount = 0;
           move(0);
        }
       
@@ -211,6 +221,7 @@ void loop()
   btRun = 0; //if limit switch is pressed stop bot
   ucMotorStateIndex = motorStartIndex;
   ucMotorState = 0;
+  stepCount = 0;
   move(0);
  }
  
@@ -226,6 +237,25 @@ void loop()
       CR1_ui8IRDatum = 0;                     // if so, clear incoming byte
     }
  }
+
+ if(runStepper){
+  curStepperMicrosec = micros();                      // get the current time in milliseconds
+  if (curStepperMicrosec - prevStepperMicrosec > stepRate) { // check to see if elapsed time matched the desired delay
+     Serial.println(stepCount);
+     if (stepCount%5000 == 0) {
+       btDir = !btDir;
+       digitalWrite(ciStepperMotorDir, btDir);           // set direction
+     }
+    prevStepperMicrosec = curStepperMicrosec;           
+    stepCount++;     
+    digitalWrite(ciStepperMotorStep, stepCount & 1);      // toggle step pin (0 if stepCount is even, 1 if stepCount is odd)
+    if(stepCount >= 10000){
+      Serial.println("here");
+      runStepper = false;
+    }
+  }
+ }
+ 
  CR1_ulMainTimerNow = micros();
  if(CR1_ulMainTimerNow - CR1_ulMainTimerPrevious >= CR1_ciMainTimer)
  {
@@ -269,7 +299,7 @@ void loop()
           case 2:
           {
             move(0);
-            ENC_SetDistance(245, 245);
+            ENC_SetDistance(250, 250);
             ucMotorState = 1;   //forward
             ucMotorStateIndex++;
            
@@ -287,7 +317,7 @@ void loop()
          case 4:
           {
             move(0);
-            ENC_SetDistance(310, 310);
+            ENC_SetDistance(320, 320);
             ucMotorState = 1;   //forward
             ucMotorStateIndex++;
             break;
@@ -304,7 +334,7 @@ void loop()
            case 6:
           {
             move(0);
-            ENC_SetDistance(320, 320);
+            ENC_SetDistance(340, 340);
             ucMotorState = 1;   //forward
             ucMotorStateIndex++;
                        
@@ -333,7 +363,7 @@ void loop()
           case 9:
           {
             move(0);
-            ENC_SetDistance(-5, 5);
+            ENC_SetDistance(-8, 8);
             ucMotorState = 2;   //left
             ucMotorStateIndex++;
             
@@ -361,6 +391,17 @@ void loop()
           {
             move(0);
             ucMotorState = 0;
+            runStepper = true;
+            ucMotorStateIndex++;
+
+            break;
+          }
+          case 13:
+          {
+            move(0);
+            ucMotorState = 0;
+
+            break;
           }
          }
         }else{
@@ -379,7 +420,7 @@ void loop()
           ucMotorState = 0;
           ucMotorStateIndex++;
         }else if(firstPass){
-          CR1_ui8WheelSpeed = 170;
+          CR1_ui8WheelSpeed = 150;
         }else{
           CR1_ui8WheelSpeed = 130;
         }
@@ -394,7 +435,7 @@ void loop()
           ucMotorStateIndex++;
         }else{
           adjustSpeed = true;
-          CR1_ui8WheelSpeed = 180;
+          CR1_ui8WheelSpeed = 140;
         }
       }
        
